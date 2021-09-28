@@ -1,8 +1,8 @@
 <template>
-<div>
-    <li v-for="item in items" :key="item.id">
+<div class="itemsdiv">
+    <div class="itemdiv" v-for="item in items" :key="item.id">
     {{ item.name }}
-  </li>
+  </div>
 </div>
 </template>
 
@@ -25,3 +25,19 @@ export default {
     },
 }
 </script>
+
+<style>
+.itemsdiv {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.itemdiv {
+  width: 200px;
+  height: 200px;
+  background-color: #eee;
+  padding: 10px;
+  margin: 10px;
+}
+</style>
