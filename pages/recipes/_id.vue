@@ -15,7 +15,7 @@
         <span class="previewmsg">Jó étvágyat !</span>
         <div class="preview">
           <img
-            width="800"
+            width="80%"
             :src="`https://github.com/hyperchessbot/nuxt/blob/main/recipes/${blob.item.thumbnail}?raw=true`"
           />
           <hr />

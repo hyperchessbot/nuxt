@@ -5,7 +5,6 @@
         class="itemdiv"
         v-for="item in items"
         :key="item.id"
-        v-on:click="loadPage(`${item.id}`)"
       >
         <div class="foodname"><NuxtLink :to="`/recipes/${item.id}`">{{ item.name }}</NuxtLink></div>
         <img
