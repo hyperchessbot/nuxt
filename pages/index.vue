@@ -85,6 +85,8 @@ export default {
   background-repeat: no-repeat;
   background-image: url(https://github.com/hyperchessbot/nuxt/blob/main/static/teflon.png?raw=true);
   background-size: cover;
+  border: solid 2px #ddd;
+  border-radius: 15px;
 }
 body {
   background-color: #ddd;
@@ -92,6 +94,10 @@ body {
   border-radius: 15px;
   cursor: pointer;
   padding: 20px;
-  margin-top: 20px;
+  margin-top: 50px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: url(https://github.com/hyperchessbot/nuxt/blob/main/static/kitchen.png?raw=true);
+  background-size: cover;
 }
 </style>

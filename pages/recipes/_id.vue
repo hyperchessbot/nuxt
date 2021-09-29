@@ -77,13 +77,14 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #cdd;
+  background-color: #dec;
   color: #007;
   padding: 10px;
   border: solid 2px #ddd;
   border-radius: 15px;
   margin-left: 15px;
   margin-right: 15px;
+  opacity: 0.9;
 }
 .ingredients {
   border: solid 2px #ddd;
