@@ -2,7 +2,7 @@
   <div>
     <div class="recipecont">
       <div class="home">
-        <NuxtLink to="/">Home</NuxtLink>
+        <NuxtLink to="/">Back to Recipes</NuxtLink>
       </div>
       <div class="ingredients">
         <span class="title">Hozzávalók</span>
@@ -72,6 +72,18 @@ export default {
   text-align: center;
   margin-bottom: 5px;
   font-size: 20px;
+  padding: 5px;
+  padding-left: 30px;
+  padding-right: 30px;
+  background: #eee;
+  font-style: italic;
+  border: solid 2px #ddd;
+  border-radius: 10px;
+  box-shadow: 3px 3px #aaa;
+}
+.home a {
+  text-decoration: none;
+  color: #007;
 }
 .recipecont {
   display: flex;
