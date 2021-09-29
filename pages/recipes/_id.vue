@@ -27,6 +27,11 @@
 
 <script>
 export default {
+  head() {
+    return {
+      title: "Nuxt Recipes - " + this.blob.item.name,
+    };
+  },
   async asyncData({ params }) {
     let response = await fetch(
       `https://raw.githubusercontent.com/hyperchessbot/nuxt/main/recipes/index`
@@ -41,7 +46,7 @@ export default {
         thumbnail: fields[3],
       };
     });
-    const item = items.find((item) => item.id == params.id);
+    const item = items.find((item) => item.id === params.id);
 
     response = await fetch(
       `https://raw.githubusercontent.com/hyperchessbot/nuxt/main/recipes/${params.id}`
