@@ -1,39 +1,48 @@
 <template>
-<div class="bg">
-<div class="itemsdiv">
-  <div class="itemdiv" v-for="item in items" :key="item.id" v-on:click="loadPage(`${item.id}`)">
-    <div class="foodname">{{ item.name }}</div>
-    <img :src="`https://github.com/hyperchessbot/nuxt/blob/main/recipes/${item.thumbnail}?raw=true`" class="foodthumbnail">
-    <div class="ingredients">{{ item.ingredients }}</div>
+  <div class="bg">
+    <div class="itemsdiv">
+      <div
+        class="itemdiv"
+        v-for="item in items"
+        :key="item.id"
+        v-on:click="loadPage(`${item.id}`)"
+      >
+        <div class="foodname">{{ item.name }}</div>
+        <img
+          :src="`https://github.com/hyperchessbot/nuxt/blob/main/recipes/${item.thumbnail}?raw=true`"
+          class="foodthumbnail"
+        />
+        <div class="ingredients">{{ item.ingredients }}</div>
+      </div>
+    </div>
   </div>
-</div>
-</div>
 </template>
 
 <script>
-export default {  
+export default {
   methods: {
-    loadPage(id){
-      const route = `/recipes/${id}`
-      console.log("loading page", route)
-      document.location.href = route
-    }
-  },
-  async asyncData() {      
-      const response = await fetch(`https://raw.githubusercontent.com/hyperchessbot/nuxt/main/recipes/index`)
-      const content = await response.text()      
-      const items = content.split("------").map(item => {
-            const fields = item.split("---").map(item => item.trim())
-            return {
-              id: fields[0],
-              name: fields[1],
-              ingredients: fields[2],
-              thumbnail: fields[3]
-            }
-          })
-      return { items }
+    loadPage(id) {
+      const route = `/recipes/${id}`;
+      document.location.href = route;
     },
-}
+  },
+  async asyncData() {
+    const response = await fetch(
+      `https://raw.githubusercontent.com/hyperchessbot/nuxt/main/recipes/index`
+    );
+    const content = await response.text();
+    const items = content.split("------").map((item) => {
+      const fields = item.split("---").map((item) => item.trim());
+      return {
+        id: fields[0],
+        name: fields[1],
+        ingredients: fields[2],
+        thumbnail: fields[3],
+      };
+    });
+    return { items };
+  },
+};
 </script>
 
 <style>
@@ -46,7 +55,7 @@ export default {
   align-items: center;
   flex-wrap: wrap;
 }
-.itemdiv {  
+.itemdiv {
   opacity: 0.9;
   background-color: #f7f7f7;
   padding: 12px;
@@ -78,9 +87,9 @@ export default {
 .bg {
   padding: 5px;
   background-position: center;
-  background-repeat: no-repeat;  
-  background-image: url(https://github.com/hyperchessbot/nuxt/blob/main/static/teflon.png?raw=true);      
-  background-size: cover;  
+  background-repeat: no-repeat;
+  background-image: url(https://github.com/hyperchessbot/nuxt/blob/main/static/teflon.png?raw=true);
+  background-size: cover;
 }
 body {
   background-color: #ddd;
