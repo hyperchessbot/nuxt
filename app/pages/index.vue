@@ -2,6 +2,7 @@
 <div class="itemsdiv">
     <div class="itemdiv" v-for="item in items" :key="item.id">
     {{ item.name }}
+    <img :src="`https://github.com/hyperchessbot/nuxt/blob/main/app/recipes/${item.thumbnail}?raw=true`" class="foodthumbnail">
   </div>
 </div>
 </template>
@@ -18,7 +19,8 @@ export default {
             return {
               id: fields[0],
               name: fields[1],
-              ingredients: fields[2]
+              ingredients: fields[2],
+              thumbnail: fields[3]
             }
           })
       return { items }
@@ -27,6 +29,9 @@ export default {
 </script>
 
 <style>
+:root {
+  --thumbnail-size: 300px;
+}
 .itemsdiv {
   display: flex;
   justify-content: space-around;
@@ -34,10 +39,14 @@ export default {
   flex-wrap: wrap;
 }
 .itemdiv {
-  width: 200px;
-  height: 200px;
+  width: var(--thumbnail-size);
+  height: var(--thumbnail-size);
   background-color: #eee;
   padding: 10px;
   margin: 10px;
+}
+.foodthumbnail {
+  width: var(--thumbnail-size);
+  height: var(--thumbnail-size);
 }
 </style>
