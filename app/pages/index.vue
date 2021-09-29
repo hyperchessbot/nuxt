@@ -21,7 +21,7 @@ export default {
       const response = await fetch(`https://raw.githubusercontent.com/hyperchessbot/nuxt/main/app/recipes/index`)
       const content = await response.text()      
       const items = content.split("------").map(item => {
-            const fields = item.split("---")
+            const fields = item.split("---").map(item => item.trim())
             return {
               id: fields[0],
               name: fields[1],
