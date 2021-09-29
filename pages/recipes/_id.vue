@@ -37,16 +37,13 @@ export default {
     };
   },
   async asyncData({ params }) {
-    let response = await fetch(
-      `https://raw.githubusercontent.com/hyperchessbot/nuxt/main/recipes/index`
-    );
+    let response = await fetch(`${utils.config.RECIPES_GIT_BASE}/index`);
     const index = await response.text();
+
     const items = utils.methods.index2blob(index);
     const item = items.find((item) => item.id === params.id);
 
-    response = await fetch(
-      `https://raw.githubusercontent.com/hyperchessbot/nuxt/main/recipes/${params.id}`
-    );
+    response = await fetch(`${utils.config.RECIPES_GIT_BASE}/${params.id}`);
     const content = await response.text();
 
     const blob = {

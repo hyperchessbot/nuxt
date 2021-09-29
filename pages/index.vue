@@ -25,9 +25,7 @@ export default {
     };
   },
   async asyncData() {
-    const response = await fetch(
-      `https://raw.githubusercontent.com/hyperchessbot/nuxt/main/recipes/index`
-    );
+    const response = await fetch(`${utils.config.RECIPES_GIT_BASE}/index`);
     const content = await response.text();
     const items = utils.methods.index2blob(content);
     return { items };
