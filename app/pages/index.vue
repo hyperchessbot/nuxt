@@ -1,6 +1,6 @@
 <template>
 <div class="itemsdiv">
-    <div class="itemdiv" v-for="item in items" :key="item.id">
+  <div class="itemdiv" v-for="item in items" :key="item.id" v-on:click="loadPage(`${item.id}`)">
     <div class="foodname">{{ item.name }}</div>
     <img :src="`https://github.com/hyperchessbot/nuxt/blob/main/app/recipes/${item.thumbnail}?raw=true`" class="foodthumbnail">
     <div class="ingredients">{{ item.ingredients }}</div>
@@ -10,11 +10,16 @@
 
 <script>
 export default {  
-  async asyncData() {
-      console.log("fetching")
+  methods: {
+    loadPage(id){
+      const route = `/recipes/${id}`
+      console.log("loading page", route)
+      document.location.href = route
+    }
+  },
+  async asyncData() {      
       const response = await fetch(`https://raw.githubusercontent.com/hyperchessbot/nuxt/main/app/recipes/index`)
-      const content = await response.text()
-      console.log("fetched", content)
+      const content = await response.text()      
       const items = content.split("------").map(item => {
             const fields = item.split("---")
             return {
