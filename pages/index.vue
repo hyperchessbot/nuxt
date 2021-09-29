@@ -51,6 +51,7 @@ export default {
   border: solid 2px #ddd;
   border-radius: 15px;
   height: 400px;
+  box-shadow: 5px 5px #bbb;
 }
 .foodthumbnail {
   width: var(--thumbnail-size);
