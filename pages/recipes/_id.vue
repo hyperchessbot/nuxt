@@ -28,6 +28,8 @@
 </template>
 
 <script>
+import utils from "~/pages/utils.js";
+
 export default {
   head() {
     return {
@@ -39,15 +41,7 @@ export default {
       `https://raw.githubusercontent.com/hyperchessbot/nuxt/main/recipes/index`
     );
     const index = await response.text();
-    const items = index.split("------").map((item) => {
-      const fields = item.split("---").map((item) => item.trim());
-      return {
-        id: fields[0],
-        name: fields[1],
-        ingredients: fields[2],
-        thumbnail: fields[3],
-      };
-    });
+    const items = utils.methods.index2blob(index);
     const item = items.find((item) => item.id === params.id);
 
     response = await fetch(
