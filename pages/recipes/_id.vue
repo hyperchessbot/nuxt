@@ -65,7 +65,7 @@ export default {
 .home {
   width: 100%x;
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
   font-size: 20px;
 }
 .recipecont {
