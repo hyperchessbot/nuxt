@@ -10,7 +10,7 @@
         <div class="recipe">            
             {{ blob.content }}        
             <div class="preview">
-    <img width="800" :src="`https://github.com/hyperchessbot/nuxt/blob/main/app/recipes/${blob.item.thumbnail}?raw=true`">
+    <img width="800" :src="`https://github.com/hyperchessbot/nuxt/blob/main/recipes/${blob.item.thumbnail}?raw=true`">
     </div>
         </div>
     </div>        
@@ -21,7 +21,7 @@
 export default {
     async asyncData({params}) {
 
-        let response = await fetch(`https://raw.githubusercontent.com/hyperchessbot/nuxt/main/app/recipes/index`)
+        let response = await fetch(`https://raw.githubusercontent.com/hyperchessbot/nuxt/main/recipes/index`)
         const index = await response.text()      
         const items = index.split("------").map(item => {
             const fields = item.split("---").map(item => item.trim())
@@ -35,7 +35,7 @@ export default {
         console.log(items)
         const item = items.find(item => item.id == params.id)
         
-        response = await fetch(`https://raw.githubusercontent.com/hyperchessbot/nuxt/main/app/recipes/${params.id}`)
+        response = await fetch(`https://raw.githubusercontent.com/hyperchessbot/nuxt/main/recipes/${params.id}`)
         const content = await response.text()
 
         const blob = {

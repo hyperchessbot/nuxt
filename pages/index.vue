@@ -3,7 +3,7 @@
 <div class="itemsdiv">
   <div class="itemdiv" v-for="item in items" :key="item.id" v-on:click="loadPage(`${item.id}`)">
     <div class="foodname">{{ item.name }}</div>
-    <img :src="`https://github.com/hyperchessbot/nuxt/blob/main/app/recipes/${item.thumbnail}?raw=true`" class="foodthumbnail">
+    <img :src="`https://github.com/hyperchessbot/nuxt/blob/main/recipes/${item.thumbnail}?raw=true`" class="foodthumbnail">
     <div class="ingredients">{{ item.ingredients }}</div>
   </div>
 </div>
@@ -20,7 +20,7 @@ export default {
     }
   },
   async asyncData() {      
-      const response = await fetch(`https://raw.githubusercontent.com/hyperchessbot/nuxt/main/app/recipes/index`)
+      const response = await fetch(`https://raw.githubusercontent.com/hyperchessbot/nuxt/main/recipes/index`)
       const content = await response.text()      
       const items = content.split("------").map(item => {
             const fields = item.split("---").map(item => item.trim())
@@ -79,7 +79,7 @@ export default {
   padding: 5px;
   background-position: center;
   background-repeat: no-repeat;  
-  background-image: url(https://github.com/hyperchessbot/nuxt/blob/main/app/static/teflon.png?raw=true);      
+  background-image: url(https://github.com/hyperchessbot/nuxt/blob/main/static/teflon.png?raw=true);      
   background-size: cover;  
 }
 body {
