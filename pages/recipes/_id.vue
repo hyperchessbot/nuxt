@@ -126,7 +126,7 @@ export default {
   font-family: Verdana;
   width: 80%;
   box-shadow: 8px 8px #8bb;
-  text-align: center;
+  text-align: left;
 }
 .preview {
   margin-top: 20px;
