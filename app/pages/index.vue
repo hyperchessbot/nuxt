@@ -1,10 +1,12 @@
 <template>
+<div class="bg">
 <div class="itemsdiv">
   <div class="itemdiv" v-for="item in items" :key="item.id" v-on:click="loadPage(`${item.id}`)">
     <div class="foodname">{{ item.name }}</div>
     <img :src="`https://github.com/hyperchessbot/nuxt/blob/main/app/recipes/${item.thumbnail}?raw=true`" class="foodthumbnail">
     <div class="ingredients">{{ item.ingredients }}</div>
   </div>
+</div>
 </div>
 </template>
 
@@ -45,12 +47,14 @@ export default {
   flex-wrap: wrap;
 }
 .itemdiv {  
+  opacity: 0.9;
   background-color: #f7f7f7;
   padding: 12px;
   margin: 10px;
   border: solid 2px #ddd;
   border-radius: 15px;
   cursor: pointer;
+  height: 400px;
 }
 .foodthumbnail {
   width: var(--thumbnail-size);
@@ -70,5 +74,20 @@ export default {
   font-style: italic;
   width: var(--thumbnail-size);
   text-align: center;
+}
+.bg {
+  padding: 5px;
+  background-position: center;
+  background-repeat: no-repeat;  
+  background-image: url(https://github.com/hyperchessbot/nuxt/blob/main/app/static/teflon.png?raw=true);      
+  background-size: cover;  
+}
+body {
+  background-color: #ddd;
+  border: solid 4px #eee;
+  border-radius: 15px;
+  cursor: pointer;
+  padding: 20px;
+  margin-top: 20px;
 }
 </style>
