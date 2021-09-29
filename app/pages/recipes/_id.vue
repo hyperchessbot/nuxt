@@ -1,16 +1,19 @@
 <template>
-<div>
-    <div class="home">
+<div>    
+    <div class="recipecont">
+        <div class="home">
     <a href="/">Home</a>
     </div>
-    <div class="recipecont">
         <div class="ingredients">
             Hozzávalók<hr>{{ blob.item.ingredients }}
         </div>
         <div class="recipe">            
             {{ blob.content }}        
+            <div class="preview">
+    <img width="800" :src="`https://github.com/hyperchessbot/nuxt/blob/main/app/recipes/${blob.item.thumbnail}?raw=true`">
+    </div>
         </div>
-    </div>    
+    </div>        
 </div>
 </template>
 
@@ -83,5 +86,10 @@ export default {
     font-size: 30px;
     padding: 20px;
     font-family: Verdana;
+}
+.preview {
+    margin-top: 20px;
+    width: 100%;
+    text-align: center;
 }
 </style>
