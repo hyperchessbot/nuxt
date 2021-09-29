@@ -10,9 +10,11 @@
         {{ blob.item.ingredients }}
       </div>
       <div class="recipe">
+        <div class="recipetext">
         {{ blob.content }}
+        </div>
         <hr />
-        <span class="previewmsg">Jó étvágyat !</span>
+        <div class="previewmsg">Jó étvágyat !</span>
         <div class="preview">
           <img
             width="80%"
@@ -126,6 +128,9 @@ export default {
   font-family: Verdana;
   width: 80%;
   box-shadow: 8px 8px #8bb;
+  text-align: center;
+}
+.recipetext {
   text-align: left;
 }
 .preview {
