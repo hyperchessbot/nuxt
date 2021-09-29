@@ -11,14 +11,14 @@
       </div>
       <div class="recipe">
         {{ blob.content }}
-        <hr>
+        <hr />
         <span class="previewmsg">Jó étvágyat !</span>
         <div class="preview">
           <img
             width="800"
             :src="`https://github.com/hyperchessbot/nuxt/blob/main/recipes/${blob.item.thumbnail}?raw=true`"
           />
-          <hr>
+          <hr />
         </div>
       </div>
     </div>
@@ -76,11 +76,11 @@ export default {
   color: #007;
   padding: 10px;
   border: solid 2px #ddd;
-  border-radius: 15px;  
+  border-radius: 15px;
   margin-left: 15px;
   margin-right: 15px;
 }
-.ingredients {  
+.ingredients {
   border: solid 2px #ddd;
   border-radius: 15px;
   padding: 20px;
@@ -97,7 +97,7 @@ export default {
   box-shadow: 8px 8px #777;
 }
 .ingredients .title {
-  color: #a00;  
+  color: #a00;
 }
 .recipe {
   background-color: #dff;
