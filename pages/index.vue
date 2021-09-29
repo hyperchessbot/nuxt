@@ -85,7 +85,6 @@ body {
   background-color: #ddd;
   border: solid 4px #eee;
   border-radius: 15px;
-  cursor: pointer;
   padding: 20px;
   margin-top: 50px;
   background-position: center;
