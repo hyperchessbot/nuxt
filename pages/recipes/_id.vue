@@ -11,10 +11,10 @@
       </div>
       <div class="recipe">
         <div class="recipetext">
-        {{ blob.content }}
+          {{ blob.content }}
         </div>
         <hr />
-        <div class="previewmsg">Jó étvágyat !</span>
+        <div class="previewmsg">Jó étvágyat !</div>
         <div class="preview">
           <img
             width="80%"
