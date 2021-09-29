@@ -7,7 +7,7 @@
         :key="item.id"
         v-on:click="loadPage(`${item.id}`)"
       >
-        <div class="foodname">{{ item.name }}</div>
+        <div class="foodname"><NuxtLink :to="`/recipes/${item.id}`">{{ item.name }}</NuxtLink></div>
         <img
           :src="`https://github.com/hyperchessbot/nuxt/blob/main/recipes/${item.thumbnail}?raw=true`"
           class="foodthumbnail"
@@ -19,13 +19,7 @@
 </template>
 
 <script>
-export default {
-  methods: {
-    loadPage(id) {
-      const route = `/recipes/${id}`;
-      document.location.href = route;
-    },
-  },
+export default {  
   async asyncData() {
     const response = await fetch(
       `https://raw.githubusercontent.com/hyperchessbot/nuxt/main/recipes/index`
@@ -61,8 +55,7 @@ export default {
   padding: 12px;
   margin: 10px;
   border: solid 2px #ddd;
-  border-radius: 15px;
-  cursor: pointer;
+  border-radius: 15px;  
   height: 400px;
 }
 .foodthumbnail {
