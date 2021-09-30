@@ -8,11 +8,7 @@ export default {
   },
   methods: {
     index2blob(content) {
-      console.log(content);
-
-      const items = toml.parse(content);
-
-      console.log(items);
+      const items = toml.parse(content).recipe;
 
       return items;
     }
