@@ -18,7 +18,7 @@
         <div class="preview">
           <img
             width="80%"
-            :src="`https://github.com/hyperchessbot/nuxt/blob/main/recipes/${blob.item.thumbnail}?raw=true`"
+            :src="`https://github.com/hyperchessbot/nuxt/blob/main/recipes/${blob.item.image}?raw=true`"
           />
           <hr />
         </div>

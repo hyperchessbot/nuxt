@@ -6,7 +6,7 @@
           <NuxtLink :to="`/recipes/${item.id}`">{{ item.name }}</NuxtLink>
         </div>
         <img
-          :src="`https://github.com/hyperchessbot/nuxt/blob/main/recipes/${item.thumbnail}?raw=true`"
+          :src="`https://github.com/hyperchessbot/nuxt/blob/main/recipes/${item.image}?raw=true`"
           class="foodthumbnail"
         />
         <div class="ingredients">{{ item.ingredients }}</div>
