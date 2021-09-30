@@ -13,5 +13,5 @@ image = "rantotthus.png"
 [recipe]
 id = "tejfolosuborkasalata"
 name = "Tejfölös uborkasaláta"
-ingredients "Kígyó uborka, fokhagyna, zöldpaprika, paradicsom, tejföl, só, bors, pirospaprika."
+ingredients = "Kígyó uborka, fokhagyna, zöldpaprika, paradicsom, tejföl, só, bors, pirospaprika."
 image = "tejfolosuborkasalata.png"
