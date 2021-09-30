@@ -1,6 +1,6 @@
-## Disclaimer
+# Nuxt.js by example - Nuxt Recipe Book hosted on Netlify
 
-This post was inspired by the great video https://www.youtube.com/watch?v=nteDXuqBfn0 .
+This project was inspired by the great video https://www.youtube.com/watch?v=nteDXuqBfn0 .
 
 ## What is Nuxt.js ?
 
