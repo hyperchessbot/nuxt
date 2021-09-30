@@ -1,23 +1,17 @@
-parasztrantotta
----
-Paraszt rántotta
----
-Füstölt mangalica szalonna, vöröshagyma, zöldpaprika, paradicsom, bors, piros paprika.
----
-parasztrantotta.jpg
-------
-rantotthus
----
-Rántott hús
----
-Sertés karaj, liszt, tojás, zsemlemorzsa, só, bors.
----
-rantotthus.png
-------
-tejfolosuborkasalata
----
-Tejfölös uborkasaláta
----
-Kígyó uborka, fokhagyna, zöldpaprika, paradicsom, tejföl, só, bors, pirospaprika.
----
-tejfolosuborkasalata.png
+[recipe]
+id = "parasztrantotta"
+name = "Paraszt rántotta"
+ingredients = "Füstölt mangalica szalonna, vöröshagyma, zöldpaprika, paradicsom, bors, piros paprika."
+image = "parasztrantotta.jpg"
+
+[recipe]
+id = "rantotthus"
+name = "Rántott hús"
+ingredients = "Sertés karaj, liszt, tojás, zsemlemorzsa, só, bors."
+image = "rantotthus.png"
+
+[recipe]
+id = "tejfolosuborkasalata"
+name = "Tejfölös uborkasaláta"
+ingredients "Kígyó uborka, fokhagyna, zöldpaprika, paradicsom, tejföl, só, bors, pirospaprika."
+image = "tejfolosuborkasalata.png"
