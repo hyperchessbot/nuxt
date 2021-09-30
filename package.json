@@ -11,7 +11,8 @@
   "dependencies": {
     "core-js": "^3.15.1",
     "nuxt": "^2.15.7",
-    "toml": "latest"
+    "toml": "latest",
+    "vue-chessboard": "latest"
   },
   "devDependencies": {}
 }
