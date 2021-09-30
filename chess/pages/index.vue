@@ -1,6 +1,6 @@
 <template>
-<div style="width: 500px; height: 500px; border: solid 2px #777;">
-  <chessboard orientation="black" style="box-shadow: 10px 10px #777;" />
+<div style="width: 480px; height: 480px; border: solid 2px #777;">
+  <chessboard orientation="black" />
 </div>
 </template>
 
