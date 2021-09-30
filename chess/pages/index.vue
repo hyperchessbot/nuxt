@@ -1,5 +1,7 @@
 <template>
-  <chessboard/>
+<div style="width: 500px; height: 500px; border: solid 2px #777;">
+  <chessboard orientation="black"/>
+</div>
 </template>
 
 <script>
@@ -12,3 +14,6 @@ export default {
   }
 }
 </script>
+
+<style>
+</style>
