@@ -1,16 +1,16 @@
-[recipe]
+[[recipe]]
 id = "parasztrantotta"
 name = "Paraszt rántotta"
 ingredients = "Füstölt mangalica szalonna, vöröshagyma, zöldpaprika, paradicsom, bors, piros paprika."
 image = "parasztrantotta.jpg"
 
-[recipe]
+[[recipe]]
 id = "rantotthus"
 name = "Rántott hús"
 ingredients = "Sertés karaj, liszt, tojás, zsemlemorzsa, só, bors."
 image = "rantotthus.png"
 
-[recipe]
+[[recipe]]
 id = "tejfolosuborkasalata"
 name = "Tejfölös uborkasaláta"
 ingredients = "Kígyó uborka, fokhagyna, zöldpaprika, paradicsom, tejföl, só, bors, pirospaprika."
