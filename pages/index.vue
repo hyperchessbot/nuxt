@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import utils from "~/pages/utils.js";
+import utils from "~/mixins/utils.js";
 
 export default {
   head() {
