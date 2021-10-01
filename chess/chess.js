@@ -23,6 +23,10 @@ export class Pos_{
         this.pos = new Chess(variant)
         return this
     }
+
+    setFen(fen){
+        this.pos.fromSetup()
+    }
 }
 export function Pos(){
     return new Pos_()
@@ -32,9 +36,7 @@ const pos = Pos().setVariant("atomic")
 
 console.log(pos)
 
-/*const chess = Chess.default();
-
-console.log(chess);
+const chess = Chess.default();
 
 const san = "Nf3"
 
@@ -44,8 +46,6 @@ console.log(move)
 
 chess.play(move)
 
-console.log(chess);
-
 const fen = makeFen(chess.toSetup())
 
-console.log(fen)*/
+console.log(fen)
