@@ -1,10 +1,12 @@
 import {Chess} from "./chessops/chess"
 
-import {parseSan} from "./chessops/san"
+import {parseSan, makeSan} from "./chessops/san"
 
 import {makeFen, parseFen} from "./chessops/fen"
 
-import { Verbose, Framework, log } from "./utils";
+import {parseUci, makeUci} from "./chessops/util";
+
+import {Verbose, Framework, log} from "./utils";
 
 Verbose()
 
@@ -40,6 +42,18 @@ export class Pos_{
         return parseSan(this.pos, san)
     }
 
+    moveToSan(move){
+        return makeSan(this.pos, move)
+    }
+
+    uciToMove(uci){
+        return parseUci(uci)
+    }
+
+    moveToUci(move){
+        return makeUci(move)
+    }
+
     play(move){
         this.pos.play(move)
         return this
@@ -47,6 +61,18 @@ export class Pos_{
 
     playSan(san){
         return this.play(this.sanToMove(san))
+    }
+
+    playUci(uci){
+        return this.play(this.uciToMove(uci))
+    }
+
+    sanToUci(san){
+        return this.moveToUci(this.sanToMove(san))
+    }
+
+    uciToSan(uci){
+        return this.moveToSan(this.uciToMove(uci))
     }
 
     toString(){
@@ -59,7 +85,10 @@ export function Pos(){
 
 const pos = Pos().setVariant("atomic").setFen("rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1")
 
-pos.playSan("d5")
+pos.playUci("d7d5")
+
+log(pos.sanToUci("Nc3"))
+log(pos.uciToSan("b1a3"))
 
 console.log(pos.reportFen())
 

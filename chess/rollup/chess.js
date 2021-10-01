@@ -442,6 +442,36 @@ function parseSquare(str) {
 function makeSquare(square) {
     return (FILE_NAMES[squareFile(square)] + RANK_NAMES[squareRank(square)]);
 }
+function parseUci(str) {
+    if (str[1] === '@' && str.length === 4) {
+        const role = charToRole(str[0]);
+        const to = parseSquare(str.slice(2));
+        if (role && defined(to))
+            return { role, to };
+    }
+    else if (str.length === 4 || str.length === 5) {
+        const from = parseSquare(str.slice(0, 2));
+        const to = parseSquare(str.slice(2, 4));
+        let promotion;
+        if (str.length === 5) {
+            promotion = charToRole(str[4]);
+            if (!promotion)
+                return;
+        }
+        if (defined(from) && defined(to))
+            return { from, to, promotion };
+    }
+    return;
+}
+/**
+ * Converts a move to UCI notation, like `g1f3` for a normal move,
+ * `a7a8q` for promotion to a queen, and `Q@f7` for a Crazyhouse drop.
+ */
+function makeUci(move) {
+    if (isDrop(move))
+        return `${roleToChar(move.role).toUpperCase()}@${makeSquare(move.to)}`;
+    return makeSquare(move.from) + makeSquare(move.to) + (move.promotion ? roleToChar(move.promotion) : '');
+}
 function kingCastlesTo(color, side) {
     return color === 'white' ? (side === 'a' ? 2 : 6) : side === 'a' ? 58 : 62;
 }
@@ -1169,6 +1199,81 @@ class Chess extends Position {
     }
 }
 
+function makeSanWithoutSuffix(pos, move) {
+    let san = '';
+    if (isDrop(move)) {
+        if (move.role !== 'pawn')
+            san = roleToChar(move.role).toUpperCase();
+        san += '@' + makeSquare(move.to);
+    }
+    else {
+        const role = pos.board.getRole(move.from);
+        if (!role)
+            return '--';
+        if (role === 'king' && (pos.board[pos.turn].has(move.to) || Math.abs(move.to - move.from) === 2)) {
+            san = move.to > move.from ? 'O-O' : 'O-O-O';
+        }
+        else {
+            const capture = pos.board.occupied.has(move.to) || (role === 'pawn' && squareFile(move.from) !== squareFile(move.to));
+            if (role !== 'pawn') {
+                san = roleToChar(role).toUpperCase();
+                // Disambiguation
+                let others;
+                if (role === 'king')
+                    others = kingAttacks(move.to).intersect(pos.board.king);
+                else if (role === 'queen')
+                    others = queenAttacks(move.to, pos.board.occupied).intersect(pos.board.queen);
+                else if (role === 'rook')
+                    others = rookAttacks(move.to, pos.board.occupied).intersect(pos.board.rook);
+                else if (role === 'bishop')
+                    others = bishopAttacks(move.to, pos.board.occupied).intersect(pos.board.bishop);
+                else
+                    others = knightAttacks(move.to).intersect(pos.board.knight);
+                others = others.intersect(pos.board[pos.turn]).without(move.from);
+                if (others.nonEmpty()) {
+                    const ctx = pos.ctx();
+                    for (const from of others) {
+                        if (!pos.dests(from, ctx).has(move.to))
+                            others = others.without(from);
+                    }
+                    if (others.nonEmpty()) {
+                        let row = false;
+                        let column = others.intersects(SquareSet.fromRank(squareRank(move.from)));
+                        if (others.intersects(SquareSet.fromFile(squareFile(move.from))))
+                            row = true;
+                        else
+                            column = true;
+                        if (column)
+                            san += FILE_NAMES[squareFile(move.from)];
+                        if (row)
+                            san += RANK_NAMES[squareRank(move.from)];
+                    }
+                }
+            }
+            else if (capture)
+                san = FILE_NAMES[squareFile(move.from)];
+            if (capture)
+                san += 'x';
+            san += makeSquare(move.to);
+            if (move.promotion)
+                san += '=' + roleToChar(move.promotion).toUpperCase();
+        }
+    }
+    return san;
+}
+function makeSanAndPlay(pos, move) {
+    var _a;
+    const san = makeSanWithoutSuffix(pos, move);
+    pos.play(move);
+    if ((_a = pos.outcome()) === null || _a === void 0 ? void 0 : _a.winner)
+        return san + '#';
+    if (pos.isCheck())
+        return san + '+';
+    return san;
+}
+function makeSan(pos, move) {
+    return makeSanAndPlay(pos.clone(), move);
+}
 function parseSan(pos, san) {
     const ctx = pos.ctx();
     // Castling
@@ -1679,6 +1784,18 @@ class Pos_{
         return parseSan(this.pos, san)
     }
 
+    moveToSan(move){
+        return makeSan(this.pos, move)
+    }
+
+    uciToMove(uci){
+        return parseUci(uci)
+    }
+
+    moveToUci(move){
+        return makeUci(move)
+    }
+
     play(move){
         this.pos.play(move);
         return this
@@ -1686,6 +1803,18 @@ class Pos_{
 
     playSan(san){
         return this.play(this.sanToMove(san))
+    }
+
+    playUci(uci){
+        return this.play(this.uciToMove(uci))
+    }
+
+    sanToUci(san){
+        return this.moveToUci(this.sanToMove(san))
+    }
+
+    uciToSan(uci){
+        return this.moveToSan(this.uciToMove(uci))
     }
 
     toString(){
@@ -1698,7 +1827,10 @@ function Pos(){
 
 const pos = Pos().setVariant("atomic").setFen("rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1");
 
-pos.playSan("d5");
+pos.playUci("d7d5");
+
+log(pos.sanToUci("Nc3"));
+log(pos.uciToSan("b1a3"));
 
 console.log(pos.reportFen());
 
