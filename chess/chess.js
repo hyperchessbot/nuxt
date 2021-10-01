@@ -1,5 +1,7 @@
 import {Chess} from "./chessops/chess"
 
+import {Atomic, Antichess, Crazyhouse, Horde, KingOfTheHill, RacingKings, ThreeCheck} from "./chessops/variant"
+
 import {parseSan, makeSan} from "./chessops/san"
 
 import {makeFen, parseFen} from "./chessops/fen"
@@ -22,15 +24,32 @@ export class Pos_{
     }
 
     setVariant(variant){
-        this.pos = new Chess(variant)
+        switch(variant){
+            case "atomic": this.pos = new Atomic(); break;
+            case "antichess": this.pos = new Antichess(); break;
+            case "crazyhouse": this.pos = new Crazyhouse(); break;
+            case "horde": this.pos = new Horde(); break;
+            case "kingofthehill": this.pos = new KingOfTheHill(); break;
+            case "racingkings": this.pos = new RacingKings(); break;
+            case "3check": case "threecheck": this.pos = new ThreeCheck(); break;
+            default: this.pos = new Chess()
+        }
         return this
     }
 
     setFen(fen){
         const variant = this.pos.rules
         const setup = parseFen(fen).value        
-        this.pos = Chess.fromSetup(setup).value    
-        this.pos.rules = variant
+        switch(variant){
+            case "atomic": this.pos = Atomic.fromSetup(setup).value; break;
+            case "antichess": this.pos = Antichess.fromSetup(setup).value; break;            
+            case "crazyhouse": this.pos = Crazyhouse.fromSetup(setup).value; break;
+            case "horde": this.pos = Horde.fromSetup(setup).value; break;
+            case "kingofthehill": this.pos = KingOfTheHill.fromSetup(setup).value; break;
+            case "racingkings": this.pos = RacingKings.fromSetup(setup).value; break;
+            case "3check": case "threecheck": this.pos = KingOfTheHill.fromSetup(setup).value; break;
+            default: this.pos = Chess.fromSetup(setup).value
+        }        
         return this
     }
 
@@ -85,10 +104,8 @@ export function Pos(){
 
 const pos = Pos().setVariant("atomic").setFen("rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1")
 
-pos.playUci("d7d5")
+pos.playSan("e5")
+pos.playSan("Nxe5")
 
-log(pos.sanToUci("Nc3"))
-log(pos.uciToSan("b1a3"))
-
-console.log(pos.reportFen())
+console.log(pos, pos.reportFen())
 
