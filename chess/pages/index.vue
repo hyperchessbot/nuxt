@@ -7,7 +7,9 @@
     <button v-on:click="reset" class="reset">Reset</button>
   </div>
   <div class="mainpanel">
-    <chessboard :fen="currentFen" @onMove="moveplayed" class="board" />
+    <div class="chessdiv">
+      <chessboard :orientation="orientation" :fen="currentFen" @onMove="moveplayed" class="board" />
+    </div>
     <div class="bookdiv">
       <table cellpadding = "3" cellspacing="3">
       <tr v-for="item in bookmoves" :key="item.san">
@@ -15,6 +17,13 @@
       </tr>
       </table>
     </div>
+  </div>
+  <div class="controls">        
+    <button v-on:click="step($event, -100)" class="stepbutton">|&lt;</button>
+    <button v-on:click="step($event, -1)" class="stepbutton">&lt;</button>
+    <button v-on:click="step($event, 1)" class="stepbutton">&gt;</button>
+    <button v-on:click="step($event, 100)" class="stepbutton">&gt;|</button>
+    <button v-on:click="flip" class="makesan">Flip</button>
   </div>
 </div>
 </template>
@@ -25,6 +34,8 @@ import 'vue-chessboard/dist/vue-chessboard.css'
 import {Pos} from "../rollup/chess.js"
 
 function posChanged(self){
+  console.log("pos changed, history", self.history, "ptr", self.historyptr)
+  self.ingoremoveplayed = true
   requestLichessBook(self.pos.reportFen()).then(
     result =>{
       console.log("book", result)
@@ -34,17 +45,26 @@ function posChanged(self){
 }
 
 function makemove(self, kind, str){      
+  console.log("makemove", kind, str)
   const moveinpute = document.getElementById('moveinput')
   const move = str || moveinpute.value
   moveinpute.value = ""
   try{    
-  const pos = self.pos
-  console.log("making move", move, "for", pos.toString())
-  kind === "SAN" ? pos.playSan(move) : pos.playUci(move)
-  self.currentFen = pos.reportFen()
-  console.log("done", pos.toString())
-  self.pos = pos
-  posChanged(self)
+    const pos = self.pos
+    console.log("making move", move, "for", pos.toString())  
+    const m = kind === "SAN" ? pos.sanToMove(move) : pos.uciToMove(move)
+    const moveInfo = {san: pos.moveToSan(m), uci: pos.moveToUci(m)}
+    pos.play(m)
+    const fen = pos.reportFen()    
+    console.log("done", pos.toString())
+    self.pos = pos
+    self.history = self.history.slice(0, self.historyptr + 1)
+    if(self.history[self.historyptr] != fen){
+      self.history.push(fen)
+      self.historyptr++
+    }
+    self.currentFen = fen
+    posChanged(self)
   } catch(err){
     window.alert(`Invalid ${kind} move ${move} !`)
   }
@@ -54,17 +74,29 @@ function reset(self){
   const pos = self.pos
   pos.setVariant(pos.rules)
   self.pos = pos
-  self.currentFen = pos.reportFen()
+  const fen = pos.reportFen()
+  self.currentFen = fen
+  self.history = [fen]
+  self.historyptr = 0
   posChanged(self)
 }
 
 function moveplayed(self, info)
 {
-  console.log(info)
+  console.log("moveplayed", info)  
+  if(self.ingoremoveplayed){
+    console.log("ignoring moveplayed")
+    self.ingoremoveplayed = false
+    return
+  }
   const fen = info.fen
-  const pos = self.pos
-  pos.setFen(fen)
+  self.history = self.history.slice(0, self.historyptr + 1)
+  if(self.history[self.historyptr] != fen){
+    self.history.push(fen)
+    self.historyptr++
+  }  
   self.currentFen = fen
+  self.pos.setFen(fen)
   posChanged(self)
 }
 
@@ -164,18 +196,35 @@ export default {
     console.log("data created pos", pos.toString())
     return {
       currentFen: "",
+      orientation: "white",
       pos: pos,
-      bookmoves: []
+      bookmoves: [],
+      history: [],
+      historyptr: -1,
+      ingoremoveplayed: false
     }
   }, 
   ready(){
     posChanged(this)
   },
   methods:{
+    step(ev, dir){
+      console.log("step dir", dir, "hist len", this.history.length, "old ptr", this.historyptr)
+      this.historyptr += dir
+      if(this.historyptr < 0) this.historyptr = 0
+      if(this.historyptr >= this.history.length) this.historyptr = this.history.length - 1
+      console.log("new ptr", this.historyptr)
+      const fen = this.history[this.historyptr]
+      this.pos.setFen(fen)
+      this.currentFen = fen
+      posChanged(this)
+    },
     makesanmove(ev, san){      
+      console.log("makesanmove", san)
       makemove(this, "SAN", san)
     },
     makeucimove(ev, uci){      
+      console.log("makeucimove", uci)
       makemove(this, "UCI", uci)
     },
     reset(){
@@ -183,6 +232,10 @@ export default {
     },
     moveplayed(info){
       moveplayed(this, info)
+    },
+    flip(){
+      this.orientation = this.orientation === "white" ? "black" : "white"
+      this.ingoremoveplayed = true
     }
   }
 }
@@ -220,6 +273,7 @@ export default {
   background-color: #eee;
   padding: 5px;
   height: 320px;
+  width: 320px;
   overflow-y: scroll;
 }
 .bookmovesan{
@@ -227,21 +281,25 @@ export default {
   color: #007;
   font-size: 20px;
   cursor: pointer;
+  width: 60px;
 }
 .white{
   color: #070;
   font-family: monospace;
   font-weight: bold;
+  width: 70px;
 }
 .draw{
   color: #770;
   font-family: monospace;
   font-weight: bold;
+  width: 70px;
 }
 .black{
   color: #700;
   font-family: monospace;
   font-weight: bold;
+  width: 70px;
 }
 #moveinput {
   padding: 3px;
@@ -250,5 +308,11 @@ export default {
   font-weight: bold;
   color: #070;
   width: 200px;
+}
+.chessdiv {  
+  position: relative;
+}
+.stepbutton {
+  width: 40px;
 }
 </style>
