@@ -1,9 +1,9 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 function r(r,n){r.prototype=Object.create(n.prototype),r.prototype.constructor=r,r.__proto__=n;}var n,t=function(){function r(){}var t=r.prototype;return t.unwrap=function(r,t){var o=this._chain(function(t){return n.ok(r?r(t):t)},function(r){return t?n.ok(t(r)):n.err(r)});if(o.isErr)throw o.error;return o.value},t.map=function(r,t){return this._chain(function(t){return n.ok(r(t))},function(r){return n.err(t?t(r):r)})},t.chain=function(r,t){return this._chain(r,t||function(r){return n.err(r)})},r}(),o=function(n){function t(r){var t;return (t=n.call(this)||this).value=r,t.isOk=!0,t.isErr=!1,t}return r(t,n),t.prototype._chain=function(r,n){return r(this.value)},t}(t),e=function(n){function t(r){var t;return (t=n.call(this)||this).error=r,t.isOk=!1,t.isErr=!0,t}return r(t,n),t.prototype._chain=function(r,n){return n(this.error)},t}(t);!function(r){r.ok=function(r){return new o(r)},r.err=function(r){return new e(r||new Error)},r.all=function(n){if(Array.isArray(n)){for(var t=[],o=0;o<n.length;o++){var e=n[o];if(e.isErr)return e;t.push(e.value);}return r.ok(t)}for(var u={},i=Object.keys(n),c=0;c<i.length;c++){var a=n[i[c]];if(a.isErr)return a;u[i[c]]=a.value;}return r.ok(u)};}(n||(n={}));
 
-const FILE_NAMES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-const RANK_NAMES = ['1', '2', '3', '4', '5', '6', '7', '8'];
 const COLORS = ['white', 'black'];
 const ROLES = ['pawn', 'knight', 'bishop', 'rook', 'queen', 'king'];
 const CASTLING_SIDES = ['a', 'h'];
@@ -387,58 +387,6 @@ function squareRank(square) {
 }
 function squareFile(square) {
     return square & 0x7;
-}
-function roleToChar(role) {
-    switch (role) {
-        case 'pawn':
-            return 'p';
-        case 'knight':
-            return 'n';
-        case 'bishop':
-            return 'b';
-        case 'rook':
-            return 'r';
-        case 'queen':
-            return 'q';
-        case 'king':
-            return 'k';
-    }
-}
-function charToRole(ch) {
-    switch (ch) {
-        case 'P':
-        case 'p':
-            return 'pawn';
-        case 'N':
-        case 'n':
-            return 'knight';
-        case 'B':
-        case 'b':
-            return 'bishop';
-        case 'R':
-        case 'r':
-            return 'rook';
-        case 'Q':
-        case 'q':
-            return 'queen';
-        case 'K':
-        case 'k':
-            return 'king';
-        default:
-            return;
-    }
-}
-function parseSquare(str) {
-    if (str.length !== 2)
-        return;
-    const file = str.charCodeAt(0) - 'a'.charCodeAt(0);
-    const rank = str.charCodeAt(1) - '1'.charCodeAt(0);
-    if (file < 0 || file >= 8 || rank < 0 || rank >= 8)
-        return;
-    return file + 8 * rank;
-}
-function makeSquare(square) {
-    return (FILE_NAMES[squareFile(square)] + RANK_NAMES[squareRank(square)]);
 }
 function kingCastlesTo(color, side) {
     return color === 'white' ? (side === 'a' ? 2 : 6) : side === 'a' ? 58 : 62;
@@ -1167,175 +1115,79 @@ class Chess extends Position {
     }
 }
 
-function parseSan(pos, san) {
-    const ctx = pos.ctx();
-    // Castling
-    let castlingSide;
-    if (san === 'O-O' || san === 'O-O+' || san === 'O-O#')
-        castlingSide = 'h';
-    else if (san === 'O-O-O' || san === 'O-O-O+' || san === 'O-O-O#')
-        castlingSide = 'a';
-    if (castlingSide) {
-        const rook = pos.castles.rook[pos.turn][castlingSide];
-        if (!defined(ctx.king) || !defined(rook) || !pos.dests(ctx.king, ctx).has(rook))
-            return;
-        return {
-            from: ctx.king,
-            to: rook,
-        };
-    }
-    // Normal move
-    const match = san.match(/^([NBRQK])?([a-h])?([1-8])?[-x]?([a-h][1-8])(?:=?([nbrqkNBRQK]))?[+#]?$/);
-    if (!match) {
-        // Drop
-        const match = san.match(/^([pnbrqkPNBRQK])?@([a-h][1-8])[+#]?$/);
-        if (!match)
-            return;
-        const move = {
-            role: charToRole(match[1]) || 'pawn',
-            to: parseSquare(match[2]),
-        };
-        return pos.isLegal(move, ctx) ? move : undefined;
-    }
-    const role = charToRole(match[1]) || 'pawn';
-    const to = parseSquare(match[4]);
-    const promotion = charToRole(match[5]);
-    if (!!promotion !== (role === 'pawn' && SquareSet.backranks().has(to)))
-        return;
-    if (promotion === 'king' && pos.rules !== 'antichess')
-        return;
-    let candidates = pos.board.pieces(pos.turn, role);
-    if (match[2])
-        candidates = candidates.intersect(SquareSet.fromFile(match[2].charCodeAt(0) - 'a'.charCodeAt(0)));
-    if (match[3])
-        candidates = candidates.intersect(SquareSet.fromRank(match[3].charCodeAt(0) - '1'.charCodeAt(0)));
-    // Optimization: Reduce set of candidates
-    const pawnAdvance = role === 'pawn' ? SquareSet.fromFile(squareFile(to)) : SquareSet.empty();
-    candidates = candidates.intersect(pawnAdvance.union(attacks({ color: opposite(pos.turn), role }, to, pos.board.occupied)));
-    // Check uniqueness and legality
-    let from;
-    for (const candidate of candidates) {
-        if (pos.dests(candidate, ctx).has(to)) {
-            if (defined(from))
-                return; // Ambiguous
-            from = candidate;
-        }
-    }
-    if (!defined(from))
-        return; // Illegal
-    return {
-        from,
-        to,
-        promotion,
-    };
+const HAS_GLOBAL = typeof global != "undefined";
+const HAS_WINDOW = typeof window != "undefined";
+const HAS_SELF = typeof self != "undefined";
+
+const NODE = "NODE";
+const BROWSER = "BROWSER";
+const WORKER = "WORKER";
+
+let FRAMEWORK = null;
+
+if(HAS_GLOBAL) FRAMEWORK = NODE;
+if(HAS_WINDOW) FRAMEWORK = BROWSER;
+if(HAS_SELF) FRAMEWORK = WORKER;
+
+function Framework() {
+    return FRAMEWORK
 }
 
-var InvalidFen;
-(function (InvalidFen) {
-    InvalidFen["Fen"] = "ERR_FEN";
-    InvalidFen["Board"] = "ERR_BOARD";
-    InvalidFen["Pockets"] = "ERR_POCKETS";
-    InvalidFen["Turn"] = "ERR_TURN";
-    InvalidFen["Castling"] = "ERR_CASTLING";
-    InvalidFen["EpSquare"] = "ERR_EP_SQUARE";
-    InvalidFen["RemainingChecks"] = "ERR_REMAINING_CHECKS";
-    InvalidFen["Halfmoves"] = "ERR_HALFMOVES";
-    InvalidFen["Fullmoves"] = "ERR_FULLMOVES";
-})(InvalidFen || (InvalidFen = {}));
-function makePiece(piece, opts) {
-    let r = roleToChar(piece.role);
-    if (piece.color === 'white')
-        r = r.toUpperCase();
-    if ((opts === null || opts === void 0 ? void 0 : opts.promoted) && piece.promoted)
-        r += '~';
-    return r;
-}
-function makeBoardFen(board, opts) {
-    let fen = '';
-    let empty = 0;
-    for (let rank = 7; rank >= 0; rank--) {
-        for (let file = 0; file < 8; file++) {
-            const square = file + rank * 8;
-            const piece = board.get(square);
-            if (!piece)
-                empty++;
-            else {
-                if (empty > 0) {
-                    fen += empty;
-                    empty = 0;
-                }
-                fen += makePiece(piece, opts);
-            }
-            if (file === 7) {
-                if (empty > 0) {
-                    fen += empty;
-                    empty = 0;
-                }
-                if (rank !== 0)
-                    fen += '/';
-            }
-        }
-    }
-    return fen;
-}
-function makePocket(material) {
-    return ROLES.map(role => roleToChar(role).repeat(material[role])).join('');
-}
-function makePockets(pocket) {
-    return makePocket(pocket.white).toUpperCase() + makePocket(pocket.black);
-}
-function makeCastlingFen(board, unmovedRooks, opts) {
-    const shredder = opts === null || opts === void 0 ? void 0 : opts.shredder;
-    let fen = '';
-    for (const color of COLORS) {
-        const backrank = SquareSet.backrank(color);
-        const king = board.kingOf(color);
-        if (!defined(king) || !backrank.has(king))
-            continue;
-        const candidates = board.pieces(color, 'rook').intersect(backrank);
-        for (const rook of unmovedRooks.intersect(candidates).reversed()) {
-            if (!shredder && rook === candidates.first() && rook < king) {
-                fen += color === 'white' ? 'Q' : 'q';
-            }
-            else if (!shredder && rook === candidates.last() && king < rook) {
-                fen += color === 'white' ? 'K' : 'k';
-            }
-            else {
-                const file = FILE_NAMES[squareFile(rook)];
-                fen += color === 'white' ? file.toUpperCase() : file;
-            }
-        }
-    }
-    return fen || '-';
-}
-function makeRemainingChecks(checks) {
-    return `${checks.white}+${checks.black}`;
-}
-function makeFen(setup, opts) {
-    return [
-        makeBoardFen(setup.board, opts) + (setup.pockets ? `[${makePockets(setup.pockets)}]` : ''),
-        setup.turn[0],
-        makeCastlingFen(setup.board, setup.unmovedRooks, opts),
-        defined(setup.epSquare) ? makeSquare(setup.epSquare) : '-',
-        ...(setup.remainingChecks ? [makeRemainingChecks(setup.remainingChecks)] : []),
-        ...((opts === null || opts === void 0 ? void 0 : opts.epd) ? [] : [Math.max(0, Math.min(setup.halfmoves, 9999)), Math.max(1, Math.min(setup.fullmoves, 9999))]),
-    ].join(' ');
+let VERBOSE = false;
+
+function Verbose() {
+    VERBOSE = true;
 }
 
-const chess = Chess.default();
+function log(content) {
+    if(VERBOSE){
+        console.log(content);
+    }
+}
+
+Verbose();
+
+const framework = Framework();
+
+log(framework);
+
+// Pos_ is an abstraction of a chess position
+class Pos_{
+    constructor(){
+        // initialize to standard chess starting position
+        this.pos = Chess.default();
+    }
+
+    setVariant(variant){
+        this.pos = new Chess(variant);
+        return this
+    }
+}
+function Pos(){
+    return new Pos_()
+}
+
+const pos = Pos().setVariant("atomic");
+
+console.log(pos);
+
+/*const chess = Chess.default();
 
 console.log(chess);
 
-const san = "Nf3";
+const san = "Nf3"
 
-const move = parseSan(chess, san);
+const move = parseSan(chess, san)
 
-console.log(move);
+console.log(move)
 
-chess.play(move);
+chess.play(move)
 
 console.log(chess);
 
-const fen = makeFen(chess.toSetup());
+const fen = makeFen(chess.toSetup())
 
-console.log(fen);
+console.log(fen)*/
+
+exports.Pos = Pos;
+exports.Pos_ = Pos_;

@@ -1,0 +1,2 @@
+rollup -c
+node rollup/chess.js

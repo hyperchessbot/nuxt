@@ -4,7 +4,35 @@ import {parseSan} from "./chessops/san"
 
 import {makeFen} from "./chessops/fen"
 
-const chess = Chess.default();
+import { Verbose, Framework, log } from "./utils";
+
+Verbose()
+
+const framework = Framework()
+
+log(framework)
+
+// Pos_ is an abstraction of a chess position
+export class Pos_{
+    constructor(){
+        // initialize to standard chess starting position
+        this.pos = Chess.default()
+    }
+
+    setVariant(variant){
+        this.pos = new Chess(variant)
+        return this
+    }
+}
+export function Pos(){
+    return new Pos_()
+}
+
+const pos = Pos().setVariant("atomic")
+
+console.log(pos)
+
+/*const chess = Chess.default();
 
 console.log(chess);
 
@@ -20,4 +48,4 @@ console.log(chess);
 
 const fen = makeFen(chess.toSetup())
 
-console.log(fen)
+console.log(fen)*/
