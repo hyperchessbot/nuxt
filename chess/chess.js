@@ -8,31 +8,23 @@ import {makeFen, parseFen} from "./chessops/fen"
 
 import {parseUci, makeUci} from "./chessops/util";
 
-import {Verbose, Framework, log} from "./utils";
-
-Verbose()
-
-const framework = Framework()
-
-log(framework)
-
 // Pos_ is an abstraction of a chess position
 export class Pos_{
     constructor(){
         // initialize to standard chess starting position
-        this.pos = new Chess()
+        this.pos = Chess.default()
     }
 
     setVariant(variant){
         switch(variant){
-            case "atomic": this.pos = new Atomic(); break;
-            case "antichess": this.pos = new Antichess(); break;
-            case "crazyhouse": this.pos = new Crazyhouse(); break;
-            case "horde": this.pos = new Horde(); break;
-            case "kingofthehill": this.pos = new KingOfTheHill(); break;
-            case "racingkings": this.pos = new RacingKings(); break;
-            case "3check": case "threecheck": this.pos = new ThreeCheck(); break;
-            default: this.pos = new Chess()
+            case "atomic": this.pos = Atomic.default(); break;
+            case "antichess": this.pos = Antichess.default(); break;
+            case "crazyhouse": this.pos = Crazyhouse.default(); break;
+            case "horde": this.pos = Horde.default(); break;
+            case "kingofthehill": this.pos = KingOfTheHill.default(); break;
+            case "racingkings": this.pos = RacingKings.default(); break;
+            case "3check": case "threecheck": this.pos = ThreeCheck.default(); break;
+            default: this.pos = Chess.default()
         }
         return this
     }
@@ -102,10 +94,6 @@ export function Pos(){
     return new Pos_()
 }
 
-const pos = Pos().setVariant("atomic").setFen("rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1")
+const pos = Pos()
 
-pos.playSan("e5")
-pos.playSan("Nxe5")
-
-console.log(pos, pos.reportFen())
-
+console.log("chess module initialized", pos.toString())
