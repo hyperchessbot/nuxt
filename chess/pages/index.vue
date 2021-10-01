@@ -5,7 +5,7 @@
     <button v-on:click="makemove">Make move</button>
     <button v-on:click="reset">Reset</button>
   </div>
-  <chessboard :fen="currentFen" />
+  <chessboard :fen="currentFen" @onMove="moveplayed" class="board" />
 </div>
 </template>
 
@@ -37,6 +37,15 @@ function reset(self){
   self.currentFen = pos.reportFen()
 }
 
+function moveplayed(self, info)
+{
+  console.log(info)
+  const fen = info.fen
+  const pos = self.pos
+  pos.setFen(fen)
+  self.currentFen = fen
+}
+
 export default {
   components: {
     chessboard: chessboard
@@ -55,15 +64,22 @@ export default {
     },
     reset(){
       reset(this)
+    },
+    moveplayed(info){
+      moveplayed(this, info)
     }
   }
 }
 </script>
 
 <style>
+.board {
+  margin-left: 10px;
+}
 .controls {
   padding: 5px;
   background-color: #eee;
   margin-bottom: 10px;
+  display: inline-block;
 }
 </style>
