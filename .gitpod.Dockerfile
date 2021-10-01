@@ -1,5 +1,3 @@
-5 lines (4 sloc)  122 Bytes
-   
 FROM gitpod/workspace-full
 
 # Install custom tools, runtime, etc.
