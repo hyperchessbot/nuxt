@@ -2,7 +2,7 @@ import {Chess} from "./chessops/chess"
 
 import {parseSan} from "./chessops/san"
 
-import {makeFen} from "./chessops/fen"
+import {makeFen, parseFen} from "./chessops/fen"
 
 import { Verbose, Framework, log } from "./utils";
 
@@ -16,7 +16,7 @@ log(framework)
 export class Pos_{
     constructor(){
         // initialize to standard chess starting position
-        this.pos = Chess.default()
+        this.pos = new Chess()
     }
 
     setVariant(variant){
@@ -25,27 +25,41 @@ export class Pos_{
     }
 
     setFen(fen){
-        this.pos.fromSetup()
+        const variant = this.pos.rules
+        const setup = parseFen(fen).value        
+        this.pos = Chess.fromSetup(setup).value    
+        this.pos.rules = variant
+        return this
+    }
+
+    reportFen(){
+        return makeFen(this.pos.toSetup())
+    }
+
+    sanToMove(san){
+        return parseSan(this.pos, san)
+    }
+
+    play(move){
+        this.pos.play(move)
+        return this
+    }
+
+    playSan(san){
+        return this.play(this.sanToMove(san))
+    }
+
+    toString(){
+        return `[Pos ${this.pos.rules} ${this.reportFen()}]`
     }
 }
 export function Pos(){
     return new Pos_()
 }
 
-const pos = Pos().setVariant("atomic")
+const pos = Pos().setVariant("atomic").setFen("rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1")
 
-console.log(pos)
+pos.playSan("d5")
 
-const chess = Chess.default();
+console.log(pos.reportFen())
 
-const san = "Nf3"
-
-const move = parseSan(chess, san)
-
-console.log(move)
-
-chess.play(move)
-
-const fen = makeFen(chess.toSetup())
-
-console.log(fen)

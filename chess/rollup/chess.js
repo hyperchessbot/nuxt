@@ -4,6 +4,8 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function r(r,n){r.prototype=Object.create(n.prototype),r.prototype.constructor=r,r.__proto__=n;}var n,t=function(){function r(){}var t=r.prototype;return t.unwrap=function(r,t){var o=this._chain(function(t){return n.ok(r?r(t):t)},function(r){return t?n.ok(t(r)):n.err(r)});if(o.isErr)throw o.error;return o.value},t.map=function(r,t){return this._chain(function(t){return n.ok(r(t))},function(r){return n.err(t?t(r):r)})},t.chain=function(r,t){return this._chain(r,t||function(r){return n.err(r)})},r}(),o=function(n){function t(r){var t;return (t=n.call(this)||this).value=r,t.isOk=!0,t.isErr=!1,t}return r(t,n),t.prototype._chain=function(r,n){return r(this.value)},t}(t),e=function(n){function t(r){var t;return (t=n.call(this)||this).error=r,t.isOk=!1,t.isErr=!0,t}return r(t,n),t.prototype._chain=function(r,n){return n(this.error)},t}(t);!function(r){r.ok=function(r){return new o(r)},r.err=function(r){return new e(r||new Error)},r.all=function(n){if(Array.isArray(n)){for(var t=[],o=0;o<n.length;o++){var e=n[o];if(e.isErr)return e;t.push(e.value);}return r.ok(t)}for(var u={},i=Object.keys(n),c=0;c<i.length;c++){var a=n[i[c]];if(a.isErr)return a;u[i[c]]=a.value;}return r.ok(u)};}(n||(n={}));
 
+const FILE_NAMES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+const RANK_NAMES = ['1', '2', '3', '4', '5', '6', '7', '8'];
 const COLORS = ['white', 'black'];
 const ROLES = ['pawn', 'knight', 'bishop', 'rook', 'queen', 'king'];
 const CASTLING_SIDES = ['a', 'h'];
@@ -387,6 +389,58 @@ function squareRank(square) {
 }
 function squareFile(square) {
     return square & 0x7;
+}
+function roleToChar(role) {
+    switch (role) {
+        case 'pawn':
+            return 'p';
+        case 'knight':
+            return 'n';
+        case 'bishop':
+            return 'b';
+        case 'rook':
+            return 'r';
+        case 'queen':
+            return 'q';
+        case 'king':
+            return 'k';
+    }
+}
+function charToRole(ch) {
+    switch (ch) {
+        case 'P':
+        case 'p':
+            return 'pawn';
+        case 'N':
+        case 'n':
+            return 'knight';
+        case 'B':
+        case 'b':
+            return 'bishop';
+        case 'R':
+        case 'r':
+            return 'rook';
+        case 'Q':
+        case 'q':
+            return 'queen';
+        case 'K':
+        case 'k':
+            return 'king';
+        default:
+            return;
+    }
+}
+function parseSquare(str) {
+    if (str.length !== 2)
+        return;
+    const file = str.charCodeAt(0) - 'a'.charCodeAt(0);
+    const rank = str.charCodeAt(1) - '1'.charCodeAt(0);
+    if (file < 0 || file >= 8 || rank < 0 || rank >= 8)
+        return;
+    return file + 8 * rank;
+}
+function makeSquare(square) {
+    return (FILE_NAMES[squareFile(square)] + RANK_NAMES[squareRank(square)]);
 }
 function kingCastlesTo(color, side) {
     return color === 'white' ? (side === 'a' ? 2 : 6) : side === 'a' ? 58 : 62;
@@ -1115,6 +1169,452 @@ class Chess extends Position {
     }
 }
 
+function parseSan(pos, san) {
+    const ctx = pos.ctx();
+    // Castling
+    let castlingSide;
+    if (san === 'O-O' || san === 'O-O+' || san === 'O-O#')
+        castlingSide = 'h';
+    else if (san === 'O-O-O' || san === 'O-O-O+' || san === 'O-O-O#')
+        castlingSide = 'a';
+    if (castlingSide) {
+        const rook = pos.castles.rook[pos.turn][castlingSide];
+        if (!defined(ctx.king) || !defined(rook) || !pos.dests(ctx.king, ctx).has(rook))
+            return;
+        return {
+            from: ctx.king,
+            to: rook,
+        };
+    }
+    // Normal move
+    const match = san.match(/^([NBRQK])?([a-h])?([1-8])?[-x]?([a-h][1-8])(?:=?([nbrqkNBRQK]))?[+#]?$/);
+    if (!match) {
+        // Drop
+        const match = san.match(/^([pnbrqkPNBRQK])?@([a-h][1-8])[+#]?$/);
+        if (!match)
+            return;
+        const move = {
+            role: charToRole(match[1]) || 'pawn',
+            to: parseSquare(match[2]),
+        };
+        return pos.isLegal(move, ctx) ? move : undefined;
+    }
+    const role = charToRole(match[1]) || 'pawn';
+    const to = parseSquare(match[4]);
+    const promotion = charToRole(match[5]);
+    if (!!promotion !== (role === 'pawn' && SquareSet.backranks().has(to)))
+        return;
+    if (promotion === 'king' && pos.rules !== 'antichess')
+        return;
+    let candidates = pos.board.pieces(pos.turn, role);
+    if (match[2])
+        candidates = candidates.intersect(SquareSet.fromFile(match[2].charCodeAt(0) - 'a'.charCodeAt(0)));
+    if (match[3])
+        candidates = candidates.intersect(SquareSet.fromRank(match[3].charCodeAt(0) - '1'.charCodeAt(0)));
+    // Optimization: Reduce set of candidates
+    const pawnAdvance = role === 'pawn' ? SquareSet.fromFile(squareFile(to)) : SquareSet.empty();
+    candidates = candidates.intersect(pawnAdvance.union(attacks({ color: opposite(pos.turn), role }, to, pos.board.occupied)));
+    // Check uniqueness and legality
+    let from;
+    for (const candidate of candidates) {
+        if (pos.dests(candidate, ctx).has(to)) {
+            if (defined(from))
+                return; // Ambiguous
+            from = candidate;
+        }
+    }
+    if (!defined(from))
+        return; // Illegal
+    return {
+        from,
+        to,
+        promotion,
+    };
+}
+
+class MaterialSide {
+    constructor() { }
+    static empty() {
+        const m = new MaterialSide();
+        for (const role of ROLES)
+            m[role] = 0;
+        return m;
+    }
+    static fromBoard(board, color) {
+        const m = new MaterialSide();
+        for (const role of ROLES)
+            m[role] = board.pieces(color, role).size();
+        return m;
+    }
+    clone() {
+        const m = new MaterialSide();
+        for (const role of ROLES)
+            m[role] = this[role];
+        return m;
+    }
+    equals(other) {
+        return ROLES.every(role => this[role] === other[role]);
+    }
+    add(other) {
+        const m = new MaterialSide();
+        for (const role of ROLES)
+            m[role] = this[role] + other[role];
+        return m;
+    }
+    nonEmpty() {
+        return ROLES.some(role => this[role] > 0);
+    }
+    isEmpty() {
+        return !this.nonEmpty();
+    }
+    hasPawns() {
+        return this.pawn > 0;
+    }
+    hasNonPawns() {
+        return this.knight > 0 || this.bishop > 0 || this.rook > 0 || this.queen > 0 || this.king > 0;
+    }
+    count() {
+        return this.pawn + this.knight + this.bishop + this.rook + this.queen + this.king;
+    }
+}
+class Material {
+    constructor(white, black) {
+        this.white = white;
+        this.black = black;
+    }
+    static empty() {
+        return new Material(MaterialSide.empty(), MaterialSide.empty());
+    }
+    static fromBoard(board) {
+        return new Material(MaterialSide.fromBoard(board, 'white'), MaterialSide.fromBoard(board, 'black'));
+    }
+    clone() {
+        return new Material(this.white.clone(), this.black.clone());
+    }
+    equals(other) {
+        return this.white.equals(other.white) && this.black.equals(other.black);
+    }
+    add(other) {
+        return new Material(this.white.add(other.white), this.black.add(other.black));
+    }
+    count() {
+        return this.white.count() + this.black.count();
+    }
+    isEmpty() {
+        return this.white.isEmpty() && this.black.isEmpty();
+    }
+    nonEmpty() {
+        return !this.isEmpty();
+    }
+    hasPawns() {
+        return this.white.hasPawns() || this.black.hasPawns();
+    }
+    hasNonPawns() {
+        return this.white.hasNonPawns() || this.black.hasNonPawns();
+    }
+}
+class RemainingChecks {
+    constructor(white, black) {
+        this.white = white;
+        this.black = black;
+    }
+    static default() {
+        return new RemainingChecks(3, 3);
+    }
+    clone() {
+        return new RemainingChecks(this.white, this.black);
+    }
+    equals(other) {
+        return this.white === other.white && this.black === other.black;
+    }
+}
+
+var InvalidFen;
+(function (InvalidFen) {
+    InvalidFen["Fen"] = "ERR_FEN";
+    InvalidFen["Board"] = "ERR_BOARD";
+    InvalidFen["Pockets"] = "ERR_POCKETS";
+    InvalidFen["Turn"] = "ERR_TURN";
+    InvalidFen["Castling"] = "ERR_CASTLING";
+    InvalidFen["EpSquare"] = "ERR_EP_SQUARE";
+    InvalidFen["RemainingChecks"] = "ERR_REMAINING_CHECKS";
+    InvalidFen["Halfmoves"] = "ERR_HALFMOVES";
+    InvalidFen["Fullmoves"] = "ERR_FULLMOVES";
+})(InvalidFen || (InvalidFen = {}));
+class FenError extends Error {
+}
+function nthIndexOf(haystack, needle, n) {
+    let index = haystack.indexOf(needle);
+    while (n-- > 0) {
+        if (index === -1)
+            break;
+        index = haystack.indexOf(needle, index + needle.length);
+    }
+    return index;
+}
+function parseSmallUint(str) {
+    return /^\d{1,4}$/.test(str) ? parseInt(str, 10) : undefined;
+}
+function charToPiece(ch) {
+    const role = charToRole(ch);
+    return role && { role, color: ch.toLowerCase() === ch ? 'black' : 'white' };
+}
+function parseBoardFen(boardPart) {
+    const board = Board.empty();
+    let rank = 7;
+    let file = 0;
+    for (let i = 0; i < boardPart.length; i++) {
+        const c = boardPart[i];
+        if (c === '/' && file === 8) {
+            file = 0;
+            rank--;
+        }
+        else {
+            const step = parseInt(c, 10);
+            if (step > 0)
+                file += step;
+            else {
+                if (file >= 8 || rank < 0)
+                    return n.err(new FenError(InvalidFen.Board));
+                const square = file + rank * 8;
+                const piece = charToPiece(c);
+                if (!piece)
+                    return n.err(new FenError(InvalidFen.Board));
+                if (boardPart[i + 1] === '~') {
+                    piece.promoted = true;
+                    i++;
+                }
+                board.set(square, piece);
+                file++;
+            }
+        }
+    }
+    if (rank !== 0 || file !== 8)
+        return n.err(new FenError(InvalidFen.Board));
+    return n.ok(board);
+}
+function parsePockets(pocketPart) {
+    if (pocketPart.length > 64)
+        return n.err(new FenError(InvalidFen.Pockets));
+    const pockets = Material.empty();
+    for (const c of pocketPart) {
+        const piece = charToPiece(c);
+        if (!piece)
+            return n.err(new FenError(InvalidFen.Pockets));
+        pockets[piece.color][piece.role]++;
+    }
+    return n.ok(pockets);
+}
+function parseCastlingFen(board, castlingPart) {
+    let unmovedRooks = SquareSet.empty();
+    if (castlingPart === '-')
+        return n.ok(unmovedRooks);
+    if (!/^[KQABCDEFGH]{0,2}[kqabcdefgh]{0,2}$/.test(castlingPart)) {
+        return n.err(new FenError(InvalidFen.Castling));
+    }
+    for (const c of castlingPart) {
+        const lower = c.toLowerCase();
+        const color = c === lower ? 'black' : 'white';
+        const backrank = SquareSet.backrank(color).intersect(board[color]);
+        let candidates;
+        if (lower === 'q')
+            candidates = backrank;
+        else if (lower === 'k')
+            candidates = backrank.reversed();
+        else
+            candidates = SquareSet.fromSquare(lower.charCodeAt(0) - 'a'.charCodeAt(0)).intersect(backrank);
+        for (const square of candidates) {
+            if (board.king.has(square) && !board.promoted.has(square))
+                break;
+            if (board.rook.has(square)) {
+                unmovedRooks = unmovedRooks.with(square);
+                break;
+            }
+        }
+    }
+    return n.ok(unmovedRooks);
+}
+function parseRemainingChecks(part) {
+    const parts = part.split('+');
+    if (parts.length === 3 && parts[0] === '') {
+        const white = parseSmallUint(parts[1]);
+        const black = parseSmallUint(parts[2]);
+        if (!defined(white) || white > 3 || !defined(black) || black > 3)
+            return n.err(new FenError(InvalidFen.RemainingChecks));
+        return n.ok(new RemainingChecks(3 - white, 3 - black));
+    }
+    else if (parts.length === 2) {
+        const white = parseSmallUint(parts[0]);
+        const black = parseSmallUint(parts[1]);
+        if (!defined(white) || white > 3 || !defined(black) || black > 3)
+            return n.err(new FenError(InvalidFen.RemainingChecks));
+        return n.ok(new RemainingChecks(white, black));
+    }
+    else
+        return n.err(new FenError(InvalidFen.RemainingChecks));
+}
+function parseFen(fen) {
+    const parts = fen.split(' ');
+    const boardPart = parts.shift();
+    // Board and pockets
+    let board, pockets = n.ok(undefined);
+    if (boardPart.endsWith(']')) {
+        const pocketStart = boardPart.indexOf('[');
+        if (pocketStart === -1)
+            return n.err(new FenError(InvalidFen.Fen));
+        board = parseBoardFen(boardPart.substr(0, pocketStart));
+        pockets = parsePockets(boardPart.substr(pocketStart + 1, boardPart.length - 1 - pocketStart - 1));
+    }
+    else {
+        const pocketStart = nthIndexOf(boardPart, '/', 7);
+        if (pocketStart === -1)
+            board = parseBoardFen(boardPart);
+        else {
+            board = parseBoardFen(boardPart.substr(0, pocketStart));
+            pockets = parsePockets(boardPart.substr(pocketStart + 1));
+        }
+    }
+    // Turn
+    let turn;
+    const turnPart = parts.shift();
+    if (!defined(turnPart) || turnPart === 'w')
+        turn = 'white';
+    else if (turnPart === 'b')
+        turn = 'black';
+    else
+        return n.err(new FenError(InvalidFen.Turn));
+    return board.chain(board => {
+        // Castling
+        const castlingPart = parts.shift();
+        const unmovedRooks = defined(castlingPart) ? parseCastlingFen(board, castlingPart) : n.ok(SquareSet.empty());
+        // En passant square
+        const epPart = parts.shift();
+        let epSquare;
+        if (defined(epPart) && epPart !== '-') {
+            epSquare = parseSquare(epPart);
+            if (!defined(epSquare))
+                return n.err(new FenError(InvalidFen.EpSquare));
+        }
+        // Halfmoves or remaining checks
+        let halfmovePart = parts.shift();
+        let earlyRemainingChecks;
+        if (defined(halfmovePart) && halfmovePart.includes('+')) {
+            earlyRemainingChecks = parseRemainingChecks(halfmovePart);
+            halfmovePart = parts.shift();
+        }
+        const halfmoves = defined(halfmovePart) ? parseSmallUint(halfmovePart) : 0;
+        if (!defined(halfmoves))
+            return n.err(new FenError(InvalidFen.Halfmoves));
+        const fullmovesPart = parts.shift();
+        const fullmoves = defined(fullmovesPart) ? parseSmallUint(fullmovesPart) : 1;
+        if (!defined(fullmoves))
+            return n.err(new FenError(InvalidFen.Fullmoves));
+        const remainingChecksPart = parts.shift();
+        let remainingChecks = n.ok(undefined);
+        if (defined(remainingChecksPart)) {
+            if (defined(earlyRemainingChecks))
+                return n.err(new FenError(InvalidFen.RemainingChecks));
+            remainingChecks = parseRemainingChecks(remainingChecksPart);
+        }
+        else if (defined(earlyRemainingChecks)) {
+            remainingChecks = earlyRemainingChecks;
+        }
+        if (parts.length > 0)
+            return n.err(new FenError(InvalidFen.Fen));
+        return pockets.chain(pockets => unmovedRooks.chain(unmovedRooks => remainingChecks.map(remainingChecks => {
+            return {
+                board,
+                pockets,
+                turn,
+                unmovedRooks,
+                remainingChecks,
+                epSquare,
+                halfmoves,
+                fullmoves: Math.max(1, fullmoves),
+            };
+        })));
+    });
+}
+function makePiece(piece, opts) {
+    let r = roleToChar(piece.role);
+    if (piece.color === 'white')
+        r = r.toUpperCase();
+    if ((opts === null || opts === void 0 ? void 0 : opts.promoted) && piece.promoted)
+        r += '~';
+    return r;
+}
+function makeBoardFen(board, opts) {
+    let fen = '';
+    let empty = 0;
+    for (let rank = 7; rank >= 0; rank--) {
+        for (let file = 0; file < 8; file++) {
+            const square = file + rank * 8;
+            const piece = board.get(square);
+            if (!piece)
+                empty++;
+            else {
+                if (empty > 0) {
+                    fen += empty;
+                    empty = 0;
+                }
+                fen += makePiece(piece, opts);
+            }
+            if (file === 7) {
+                if (empty > 0) {
+                    fen += empty;
+                    empty = 0;
+                }
+                if (rank !== 0)
+                    fen += '/';
+            }
+        }
+    }
+    return fen;
+}
+function makePocket(material) {
+    return ROLES.map(role => roleToChar(role).repeat(material[role])).join('');
+}
+function makePockets(pocket) {
+    return makePocket(pocket.white).toUpperCase() + makePocket(pocket.black);
+}
+function makeCastlingFen(board, unmovedRooks, opts) {
+    const shredder = opts === null || opts === void 0 ? void 0 : opts.shredder;
+    let fen = '';
+    for (const color of COLORS) {
+        const backrank = SquareSet.backrank(color);
+        const king = board.kingOf(color);
+        if (!defined(king) || !backrank.has(king))
+            continue;
+        const candidates = board.pieces(color, 'rook').intersect(backrank);
+        for (const rook of unmovedRooks.intersect(candidates).reversed()) {
+            if (!shredder && rook === candidates.first() && rook < king) {
+                fen += color === 'white' ? 'Q' : 'q';
+            }
+            else if (!shredder && rook === candidates.last() && king < rook) {
+                fen += color === 'white' ? 'K' : 'k';
+            }
+            else {
+                const file = FILE_NAMES[squareFile(rook)];
+                fen += color === 'white' ? file.toUpperCase() : file;
+            }
+        }
+    }
+    return fen || '-';
+}
+function makeRemainingChecks(checks) {
+    return `${checks.white}+${checks.black}`;
+}
+function makeFen(setup, opts) {
+    return [
+        makeBoardFen(setup.board, opts) + (setup.pockets ? `[${makePockets(setup.pockets)}]` : ''),
+        setup.turn[0],
+        makeCastlingFen(setup.board, setup.unmovedRooks, opts),
+        defined(setup.epSquare) ? makeSquare(setup.epSquare) : '-',
+        ...(setup.remainingChecks ? [makeRemainingChecks(setup.remainingChecks)] : []),
+        ...((opts === null || opts === void 0 ? void 0 : opts.epd) ? [] : [Math.max(0, Math.min(setup.halfmoves, 9999)), Math.max(1, Math.min(setup.fullmoves, 9999))]),
+    ].join(' ');
+}
+
 const HAS_GLOBAL = typeof global != "undefined";
 const HAS_WINDOW = typeof window != "undefined";
 const HAS_SELF = typeof self != "undefined";
@@ -1155,39 +1655,52 @@ log(framework);
 class Pos_{
     constructor(){
         // initialize to standard chess starting position
-        this.pos = Chess.default();
+        this.pos = new Chess();
     }
 
     setVariant(variant){
         this.pos = new Chess(variant);
         return this
     }
+
+    setFen(fen){
+        const variant = this.pos.rules;
+        const setup = parseFen(fen).value;        
+        this.pos = Chess.fromSetup(setup).value;    
+        this.pos.rules = variant;
+        return this
+    }
+
+    reportFen(){
+        return makeFen(this.pos.toSetup())
+    }
+
+    sanToMove(san){
+        return parseSan(this.pos, san)
+    }
+
+    play(move){
+        this.pos.play(move);
+        return this
+    }
+
+    playSan(san){
+        return this.play(this.sanToMove(san))
+    }
+
+    toString(){
+        return `[Pos ${this.pos.rules} ${this.reportFen()}]`
+    }
 }
 function Pos(){
     return new Pos_()
 }
 
-const pos = Pos().setVariant("atomic");
+const pos = Pos().setVariant("atomic").setFen("rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1");
 
-console.log(pos);
+pos.playSan("d5");
 
-/*const chess = Chess.default();
-
-console.log(chess);
-
-const san = "Nf3"
-
-const move = parseSan(chess, san)
-
-console.log(move)
-
-chess.play(move)
-
-console.log(chess);
-
-const fen = makeFen(chess.toSetup())
-
-console.log(fen)*/
+console.log(pos.reportFen());
 
 exports.Pos = Pos;
 exports.Pos_ = Pos_;
