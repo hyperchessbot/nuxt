@@ -9,9 +9,9 @@
   <div class="mainpanel">
     <chessboard :fen="currentFen" @onMove="moveplayed" class="board" />
     <div class="bookdiv">
-      <table cellpadding = "5" cellspacing="5">
+      <table cellpadding = "3" cellspacing="3">
       <tr v-for="item in bookmoves" :key="item.san">
-        <td class="bookmovesan" v-on:click="makesanmove($event, item.san)">{{ item.san }}</td><td>{{ item.white }}</td><td>{{ item.draws }}</td><td>{{ item.black }}</td>
+        <td class="bookmovesan" v-on:click="makesanmove($event, item.san)">{{ item.san }}</td><td class="white">{{ item.white }}</td><td class="draw">{{ item.draws }}</td><td class="black">{{ item.black }}</td>
       </tr>
       </table>
     </div>
@@ -190,36 +190,65 @@ export default {
 
 <style>
 .board {
-  margin-left: 10px;
+  margin-left: 20px;
+  margin-top: 15px;
 }
 .controls {
   padding: 5px;
-  background-color: #eee;
-  margin-bottom: 10px;
+  background-color: #eee;  
   display: inline-block;
+  margin-left: 40px;
 }
 .makesan{
   background-color: aquamarine;
+  margin-left: 10px;
 }
 .makeuci{
   background-color: lightblue;
+  margin-left: 10px;
 }
 .reset{
   background-color: #faa;
+  margin-left: 10px;
 }
 .mainpanel{
   display: flex;
   align-items: center;
 }
 .bookdiv{
-  margin-left: 10px;
+  margin-left: 20px;
   background-color: #eee;
   padding: 5px;
+  height: 320px;
+  overflow-y: scroll;
 }
 .bookmovesan{
   text-decoration: underline;
   color: #007;
   font-size: 20px;
   cursor: pointer;
+}
+.white{
+  color: #070;
+  font-family: monospace;
+  font-weight: bold;
+}
+.draw{
+  color: #770;
+  font-family: monospace;
+  font-weight: bold;
+}
+.black{
+  color: #700;
+  font-family: monospace;
+  font-weight: bold;
+}
+#moveinput {
+  padding: 3px;
+  padding-left: 6px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #070;
+  width: 200px;
 }
 </style>
