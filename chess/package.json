@@ -13,5 +13,8 @@
     "nuxt": "^2.15.7",
     "vue-chessboard": "^0.6.7"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^20.0.0",
+    "@rollup/plugin-node-resolve": "^13.0.5"
+  }
 }

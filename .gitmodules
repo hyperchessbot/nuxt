@@ -1,0 +1,3 @@
+[submodule "chess/chessops"]
+	path = chess/chessops
+	url = https://github.com/niklasf/chessops
