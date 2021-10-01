@@ -2,8 +2,9 @@
 <div>
   <div class="controls">
     <input type="text" id="moveinput" v-on:keyup.enter="makemove" />
-    <button v-on:click="makemove">Make move</button>
-    <button v-on:click="reset">Reset</button>
+    <button v-on:click="makesanmove" class="make">Make SAN move</button>
+    <button v-on:click="makeucimove" class="make">Make UCI move</button>
+    <button v-on:click="reset" class="reset">Reset</button>
   </div>
   <chessboard :fen="currentFen" @onMove="moveplayed" class="board" />
 </div>
@@ -14,19 +15,19 @@ import  {chessboard} from "vue-chessboard"
 import 'vue-chessboard/dist/vue-chessboard.css'
 import {Pos} from "../rollup/chess.js"
 
-function makemove(self){      
+function makemove(self, kind){      
   const moveinpute = document.getElementById('moveinput')
-  const san = moveinpute.value
+  const move = moveinpute.value
   moveinpute.value = ""
   try{    
   const pos = self.pos
-  console.log("making move", san, "for", pos.toString())
-  pos.playSan(san)
+  console.log("making move", move, "for", pos.toString())
+  kind === "SAN" ? pos.playSan(move) : pos.playUci(move)
   self.currentFen = pos.reportFen()
   console.log("done", pos.toString())
   self.pos = pos
   } catch(err){
-    window.alert(`Invalid move ${san} !`)
+    window.alert(`Invalid ${kind} move ${move} !`)
   }
 }
 
@@ -59,8 +60,11 @@ export default {
     }
   }, 
   methods:{
-    makemove(){      
-      makemove(this)
+    makesanmove(){      
+      makemove(this, "SAN")
+    },
+    makeucimove(){      
+      makemove(this, "UCI")
     },
     reset(){
       reset(this)
@@ -81,5 +85,11 @@ export default {
   background-color: #eee;
   margin-bottom: 10px;
   display: inline-block;
+}
+.make{
+  background-color: aquamarine;
+}
+.reset{
+  background-color: #faa;
 }
 </style>
